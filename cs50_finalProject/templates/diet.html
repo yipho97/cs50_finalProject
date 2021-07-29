@@ -1,0 +1,74 @@
+{% extends "root.html" %} 
+
+{% block main %}
+
+{% if dic['msg'] %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <strong>{{dic['msg']}}</strong> You should check in on some of those fields below.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+<div class="container" style="max-width: 767.98px">
+<h4>Today's diet</h4>
+<form action="/diet" method="post" id="form">
+    <div class="row" id="form-row">
+        <div class="col">
+          <input type="text" class="form-control" placeholder="Food name" aria-label="First name" name="food">
+        </div>
+        <div class="col">
+          <input type="text" class="form-control" placeholder="Servings /100g" aria-label="Last name" name="servings"> 
+        </div>
+        <div class="col">
+            <button type="submit" class="btn btn-primary"> Submit</button>
+        </div>
+    </div>
+</form>
+
+</div>
+{% if dic %}
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        {% for header in dic['header_list'] %}
+          {% if header not in ["user_id", "entry_id", "diet_id"] %}
+          <th scope="col">{{header}}</th>
+          {% endif %}
+        {% endfor %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in dic['query_rows'] %}
+      <tr>
+        {% for r in row %}
+        {% if loop.index0 not in [0,4,5] %}
+          <td>{{r}}</td>
+        {% endif %}
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <!-- Loop to fill empty td at cells 1-3 -->
+      {% for i in range(3) %}
+        <td></td>
+      {% endfor %}
+
+      {% for count in dic['total_counts'][0] %}        
+          <td>{{count}}</td>
+      {% endfor %}
+    </tfoot>  
+  </table>
+</div>
+{% else %}
+Table is empty
+{% endif %}
+
+{% endblock %}
+
+
+{% block scripts %}
+<script>
+
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends "root.html" %} 
+
+{% block main %}
+<div class="container" id="login-container">
+  <h2>Login</h2>
+  <img src="https://parade.com/wp-content/uploads/2020/06/iStock-1203599963.jpg" class="img-fluid rounded" id="login-img" alt="diet-background">
+  <form method="post">
+      <div class="form-group">
+        <label for="exampleInputEmail1">Email address</label>
+        <input type="email" class="form-control" name="email" aria-describedby="emailHelp" placeholder="Enter email">
+        <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+      </div>
+      <div class="form-group">
+        <label for="exampleInputPassword1">Password</label>
+        <input type="password" class="form-control" name="password" placeholder="Password">
+      </div>
+      <div style="padding-top: 10px">
+        <button type="submit" class="btn btn-primary" formaction="/login" name="action">Login</button>
+        <button type="submit" class="btn btn-primary" formaction="/register"> Register</button>
+      </div>
+  </form>
+</div>
+
+<style>
+  #login-container
+  {
+    background-color: beige;
+    max-width: 767.98px;
+    padding: 10px;
+  }
+  #login-img
+  {
+    display: block;
+    max-height: 250px;
+    width: 100%;
+    padding-bottom: 20px;
+    padding-top: 10px;
+  }
+</style>
+{% endblock %}

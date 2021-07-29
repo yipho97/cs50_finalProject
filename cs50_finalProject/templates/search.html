@@ -1,0 +1,13 @@
+{% extends "root.html" %} 
+
+{% block main %}
+
+<div class="container" style="max-width: 767.98px">
+  <h4>Search result for: {{response["name"]}}</h4>
+  <ul class="list-group">
+    {% for key,value in response.items() %}
+        <li class="list-group-item">{{key}}: {{value}}</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
