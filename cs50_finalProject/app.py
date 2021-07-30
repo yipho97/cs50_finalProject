@@ -13,12 +13,32 @@ app.config['SESSION_TYPE'] = 'filesystem'
 app.secret_key = 'super secret key'
 Session(app)
 
-@app.route("/")
+@app.route("/", methods=["GET", "POST"])
 @login_required
 def index():
+    if request.method == "POST":
+        print(request.form.to_dict())
+        con = sqlite3.connect('test.db')
+        cur = con.cursor()
+        if request.form.get("age"):
+            cur.execute("INSERT OR REPLACE INTO profile VALUES(?, ?, ?, ?, ?, ?, ?);", 
+                        (session['user_id'], request.form.get("age"), request.form.get("gender"), request.form.get("height"), request.form.get("weight"), request.form.get("activitylevel"), 
+                        request.form.get("goal")))
+        else:
+            print("DONEEE")
+            cur.execute("INSERT OR REPLACE INTO diet_goal VALUES(?, ?, ?, ?, ?);", 
+                            (session['user_id'], request.form.get("calories"), request.form.get("protein"), request.form.get("fat"), request.form.get("carbs")))
+        con.commit()
+        cur.close()
+        return render_template("index.html")
+    else:
+        con = sqlite3.connect('test.db')
+        cur = con.cursor()
+        res = cur.execute("SELECT * FROM profile INNER JOIN diet_goal ON profile.user_id = diet_goal.user_id WHERE profile.user_id = ?;", (session['user_id'], )).fetchall()
+        return render_template("index.html",res=res)
+
+
     
-        
-    return render_template("index.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -27,9 +47,7 @@ def login():
         con = sqlite3.connect('test.db')
         cur = con.cursor()
         res = cur.execute("SELECT * FROM users WHERE username = ?;",(request.form.get("email"), )).fetchall()
-        # res = [ id, username, hash]
-        print(type(res))
-        print(res)
+        cur.close()
         if len(res) != 1 :
             print("Username doesnt exist")
         elif check_password_hash(res[0][2], request.form.get("password")):
@@ -60,17 +78,12 @@ def register():
         cur = con.cursor()
         cur.execute("INSERT INTO users (username,hash) VALUES (?, ?);", (request.form.get("email"), generate_password_hash(request.form.get("password"))))
         con.commit()
-        print("REGISTERING")
-        print(request.form.get("email"))
-        print(request.form.get("password"))
-        print(generate_password_hash(request.form.get("password")))
-        print(request.form.get("action"))
-        
+        cur.close()
     return render_template("root.html")
 
 @app.route("/search")
 def search():
-    print("CALLED")
+
     url = "https://calorieninjas.p.rapidapi.com/v1/nutrition"
     query = request.args.get("search")
     querystring = {"query":f"{query}"}
@@ -93,7 +106,7 @@ def diet():
         con.row_factory = sqlite3.Row
         cur = con.cursor()
         res = cur.execute("""SELECT * FROM entries INNER JOIN diet ON entries.entry_id = diet.diet_id 
-                            WHERE user_id = ? AND time>= (SELECT datetime('now','start of day'));""", (session["user_id"], )).fetchall()
+                            WHERE user_id = ? AND time>= (SELECT datetime('now','start of day')) ORDER BY time DESC;""", (session["user_id"], )).fetchall()
         res2 = cur.execute("""SELECT SUM(calories), SUM(carbohydrates_total_g), SUM(protein_g), SUM(cholesterol_mg), SUM(fat_total_g), SUM(fat_saturated_g), SUM(fiber_g),
                             SUM(sugar_g), SUM(sodium_mg), SUM(potassium_mg) FROM entries INNER JOIN diet ON entries.entry_id = diet.diet_id 
                             WHERE user_id = ? AND time>= (SELECT datetime('now','start of day'));""", (session["user_id"], )).fetchall()
@@ -134,15 +147,30 @@ def diet():
         cur.close()
         return redirect("/diet")
 
-        # con.row_factory = sqlite3.Row
-        # cur = con.cursor()
-        # res = cur.execute("SELECT * FROM entries INNER JOIN diet ON entries.entry_id = diet.diet_id WHERE user_id = ? AND time>= (SELECT datetime('now','start of day'));", (session["user_id"], )).fetchall()
-        # cur.close()
-        # msg = f"You have added {servings} servings of {food} to your diet today."
-        # dic = {}
-        # dic['header_list'] = res[0].keys()
-        # dic['query_rows'] = res
-        # dic['msg'] = msg
-    
+@app.route("/macros", methods=["GET", "POST"])
+@login_required
+def macros():
+    if request.method == "POST":
+        print(request.form.get('goal'))
+        print(request.form.get('gender'))
+        print(request.form.get('weight'))
+        print(request.form.to_dict())
+        
+
+        url = "https://fitness-calculator.p.rapidapi.com/macrocalculator"
+
+        querystring = request.form.to_dict()
+       
+
+        headers = {
+            'x-rapidapi-key': "12610bb9b7mshfeae823b3448922p17ed51jsndac5f877f999",
+            'x-rapidapi-host': "fitness-calculator.p.rapidapi.com"
+            }
+
+        response = requests.request("GET", url, headers=headers, params=querystring).json()
+
+        print(response)
+        return render_template("macros.html", res = response)
+    return render_template("macros.html")
 
 
