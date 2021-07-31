@@ -1,6 +1,17 @@
 {% extends "root.html" %} 
 
 {% block main %}
+
+{% if dic['total_counts'] %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+  <strong>Welcome!</strong> Target remaining macros for the day: &emsp;Calories: {{"%.2f"|format(session['calories'] - dic['total_counts']['SUM(calories)'])}} 
+                                                          &emsp;Carbs(g): {{"%.2f"|format(session['carbs'] - dic['total_counts']['SUM(carbohydrates_total_g)'])}}
+                                                          &emsp;Protein(g): {{"%.2f"|format(session['protein'] - dic['total_counts']['SUM(protein_g)'])}}
+                                                          &emsp;Fat(g): {{"%.2f"|format(session['fat'] - dic['total_counts']['SUM(fat_total_g)'])}}
+  <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
 <div class="container" style="max-width: 767.98px">
   <div style="margin: auto; display: block;">
     <label style="font-size: 30px;"><b>Today's diet</b></label>
@@ -36,8 +47,10 @@
   </div>
 </div>
 
+
+
 </div>
-{% if dic %}
+{% if dic['total_counts'] %}
 <div class="table-responsive">
   <table class="table table-striped">
     <thead>
@@ -62,13 +75,29 @@
     </tbody>
     <tfoot>
       <!-- Loop to fill empty td at cells 1-3 -->
-      {% for i in range(3) %}
+      <tr>
         <td></td>
-      {% endfor %}
-
-      {% for count in dic['total_counts'][0] %}        
-          <td>{{"%.2f"|format(count)}}</td>
-      {% endfor %}
+        <td></td>
+        <td><b>Total:</b></td>
+        
+        {% for count in dic['total_counts'] %}        
+        <td>{{"%.2f"|format(count)}}</td>
+        {% endfor %}
+      </tr>
+      
+      <tr>
+        <td></td>
+        <td></td>
+        <td><b>Remaining:</b></td>
+        <td>{{"%.2f"|format(session['calories'] - dic['total_counts']['SUM(calories)'])}}</td>
+        <td>{{"%.2f"|format(session['carbs'] - dic['total_counts']['SUM(carbohydrates_total_g)'])}}</td>
+        <td>{{"%.2f"|format(session['protein'] - dic['total_counts']['SUM(protein_g)'])}}</td>
+        <td></td>
+        <td>{{"%.2f"|format(session['fat'] - dic['total_counts']['SUM(fat_total_g)'])}}</td>
+        {% for i in range (5) %}
+          <td></td>
+        {% endfor %}
+      </tr>
     </tfoot>  
   </table>
 </div>

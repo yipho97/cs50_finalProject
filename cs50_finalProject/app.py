@@ -30,11 +30,21 @@ def index():
                             (session['user_id'], request.form.get("calories"), request.form.get("protein"), request.form.get("fat"), request.form.get("carbs")))
         con.commit()
         cur.close()
-        return render_template("index.html")
+        return redirect("/")
     else:
         con = sqlite3.connect('test.db')
+        con.row_factory = sqlite3.Row
         cur = con.cursor()
-        res = cur.execute("SELECT * FROM profile INNER JOIN diet_goal ON profile.user_id = diet_goal.user_id WHERE profile.user_id = ?;", (session['user_id'], )).fetchall()
+        res = cur.execute("SELECT * FROM profile INNER JOIN diet_goal ON profile.user_id = diet_goal.user_id WHERE profile.user_id = ?;", (session['user_id'], )).fetchone()
+        if 'calories' not in session:
+            try: 
+                ("UPDATE")
+                session['calories'] = res['calories']
+                session['protein'] = res['protein']
+                session['fat'] = res['fat']
+                session['carbs'] = res['carbs']
+            except:
+                print("Goal not set yet")
         return render_template("index.html",res=res)
 
 
@@ -53,9 +63,7 @@ def login():
         elif check_password_hash(res[0][2], request.form.get("password")):
             session["user_id"] = res[0][0]
             session["email"] = res[0][1]
-            msg = f"Logged in as {res[0][1]}, session_id = {session['user_id']}"
-            print(msg)
-            return render_template("index.html", msg=msg)
+            return redirect("/")
         else:
             print("Password incorrect")
     return render_template("login.html")
@@ -109,15 +117,13 @@ def diet():
                             WHERE user_id = ? AND time>= (SELECT datetime('now','start of day')) ORDER BY time DESC;""", (session["user_id"], )).fetchall()
         res2 = cur.execute("""SELECT SUM(calories), SUM(carbohydrates_total_g), SUM(protein_g), SUM(cholesterol_mg), SUM(fat_total_g), SUM(fat_saturated_g), SUM(fiber_g),
                             SUM(sugar_g), SUM(sodium_mg), SUM(potassium_mg) FROM entries INNER JOIN diet ON entries.entry_id = diet.diet_id 
-                            WHERE user_id = ? AND time>= (SELECT datetime('now','start of day'));""", (session["user_id"], )).fetchall()
+                            WHERE user_id = ? AND time>= (SELECT datetime('now','start of day'));""", (session["user_id"], )).fetchone()
         cur.close()
         dic = {}
         if res:
             dic['header_list'] = res[0].keys()
             dic['query_rows'] = res
             dic['total_counts'] = res2
-        print(len(res2))
-        print(tuple(res2[0]))
         return render_template("diet.html", dic=dic) 
         
     if request.method == "POST":

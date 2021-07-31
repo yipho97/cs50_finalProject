@@ -1,11 +1,35 @@
 {% extends "root.html" %}
 
 {% block main %}
-TODO index
-<div class="card">
+
+<div class="card" style="max-width :600px; margin:auto;">
     <div class="card-body">
-      This is some text within a card body.
+      <h5>Hello, {{session['email']}}</h5>  
+      <div class="row">
+        <div class="col">
+          <h6>Profile</h6>
+          {% if res %}
+          <ul class="list-group">
+            <li class="list-group-item"><b>Age:</b> {{res['age']}}</li>
+            <li class="list-group-item"><b>Gender:</b> {{res['gender']}}</li>
+            <li class="list-group-item"><b>Height:</b> {{res['height']}}</li>
+            <li class="list-group-item"><b>Weight:</b> {{res['weight']}}</li>
+            <li class="list-group-item"><b>Activity Level:</b> {{res['activity_level']}}</li>
+            <li class="list-group-item"><b>Goal:</b> {{res['goal']}}</li>
+          </ul>
+        </div>
+        <div class="col">
+          <h6>Macro goals</h6>
+          <ul class="list-group">
+            <li class="list-group-item"><b>Calories:</b> {{res['calories']}}</li>
+            <li class="list-group-item"><b>Protein (g):</b> {{res['protein']}}</li>
+            <li class="list-group-item"><b>Fat (g):</b> {{res['fat']}}</li>
+            <li class="list-group-item"><b>Carbohydrates (g):</b> {{res['carbs']}}</li>
+          </ul>
+        </div>
+        {% endif %}
+      </div>
     </div>
 </div>
-{{res[0]}}
+
 {% endblock %}
