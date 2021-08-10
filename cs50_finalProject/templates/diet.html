@@ -2,7 +2,7 @@
 
 {% block main %}
 
-{% if dic['total_counts'] %}
+{% if dic['total_counts'] and dic['today'] %}
 <div class="alert alert-warning alert-dismissible fade show" role="alert">
   <strong>Welcome!</strong> Target remaining macros for the day: &emsp;Calories: {{"%.2f"|format(session['calories'] - dic['total_counts']['SUM(calories)'])}} 
                                                           &emsp;Carbs(g): {{"%.2f"|format(session['carbs'] - dic['total_counts']['SUM(carbohydrates_total_g)'])}}
@@ -12,14 +12,29 @@
 </div>
 {% endif %}
 
-<div class="container" style="max-width: 767.98px">
-  <div style="margin: auto; display: block;">
-    <label style="font-size: 30px;"><b>Today's diet</b></label>
-    <!-- Button trigger modal -->
-    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
-      Add entry
-    </button>
+<div class="container">
+  <div class="row" style="margin: auto;">
+    <div class="col">
+      <label style="font-size: 30px;"><b>Diet {{dic['date']}}</b></label>
+    </div>
   </div>
+  <div class="row" >
+    <div class="col">
+      <!-- Button trigger modal -->
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
+        Add entry
+      </button>
+    </div>
+    <div class="col">
+      <form action="/diet" method="get" class="form-inline">
+        <label>Date:</label>
+        <input type="date" name="date">
+        <button type="submit">Submit</button>
+      </form>
+    </div>
+  </div>
+
+    
 <!-- Modal -->
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
@@ -46,9 +61,6 @@
     </div>
   </div>
 </div>
-
-
-
 </div>
 {% if dic['total_counts'] %}
 <div class="table-responsive">
@@ -89,11 +101,11 @@
         <td></td>
         <td></td>
         <td><b>Remaining:</b></td>
-        <td>{{"%.2f"|format(session['calories'] - dic['total_counts']['SUM(calories)'])}}</td>
-        <td>{{"%.2f"|format(session['carbs'] - dic['total_counts']['SUM(carbohydrates_total_g)'])}}</td>
-        <td>{{"%.2f"|format(session['protein'] - dic['total_counts']['SUM(protein_g)'])}}</td>
+        <td id="remaining_calories">{{"%.2f"|format(session['calories'] - dic['total_counts']['SUM(calories)'])}}</td>
+        <td id="remaining_carbs">{{"%.2f"|format(session['carbs'] - dic['total_counts']['SUM(carbohydrates_total_g)'])}}</td>
+        <td id="remaining_protein">{{"%.2f"|format(session['protein'] - dic['total_counts']['SUM(protein_g)'])}}</td>
         <td></td>
-        <td>{{"%.2f"|format(session['fat'] - dic['total_counts']['SUM(fat_total_g)'])}}</td>
+        <td id="remaining_fat">{{"%.2f"|format(session['fat'] - dic['total_counts']['SUM(fat_total_g)'])}}</td>
         {% for i in range (5) %}
           <td></td>
         {% endfor %}
@@ -110,6 +122,17 @@ Table is empty
 
 {% block scripts %}
 <script>
+let rows  = ["remaining_calories", "remaining_carbs", "remaining_protein", "remaining_fat"]
+rows.forEach((row)=>{
+  if(document.getElementById(row).innerHTML<0)
+{
+  document.getElementById(row).style.backgroundColor= "red"
+}
+else{
+  document.getElementById(row).style.backgroundColor= "green"
+}
+})
+console.log(document.getElementById(row).innerHTML)
 
 </script>
 {% endblock %}

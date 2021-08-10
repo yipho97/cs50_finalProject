@@ -3,9 +3,9 @@ from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.exceptions import default_exceptions, HTTPException, InternalServerError
 from helpers import login_required
+import datetime
 import sqlite3
 import requests
-import time
 
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -38,7 +38,6 @@ def index():
         res = cur.execute("SELECT * FROM profile INNER JOIN diet_goal ON profile.user_id = diet_goal.user_id WHERE profile.user_id = ?;", (session['user_id'], )).fetchone()
         if 'calories' not in session:
             try: 
-                ("UPDATE")
                 session['calories'] = res['calories']
                 session['protein'] = res['protein']
                 session['fat'] = res['fat']
@@ -110,20 +109,29 @@ def search():
 @login_required
 def diet():
     if request.method == "GET":
+        dic = {}
+        if request.args.get("date") != str(datetime.date.today()) and request.args.get("date") != None:
+            print(request.args.get("date"))
+            day = request.args.get("date")
+            date  = f"{day}%"
+        else:
+            date = f"{datetime.date.today()}%"
+            dic['today'] = True
         con = sqlite3.connect('test.db')
         con.row_factory = sqlite3.Row
         cur = con.cursor()
         res = cur.execute("""SELECT * FROM entries INNER JOIN diet ON entries.entry_id = diet.diet_id 
-                            WHERE user_id = ? AND time>= (SELECT datetime('now','start of day')) ORDER BY time DESC;""", (session["user_id"], )).fetchall()
+                            WHERE user_id = ? AND time LIKE ? ORDER BY time DESC;""", (session["user_id"], date)).fetchall()
         res2 = cur.execute("""SELECT SUM(calories), SUM(carbohydrates_total_g), SUM(protein_g), SUM(cholesterol_mg), SUM(fat_total_g), SUM(fat_saturated_g), SUM(fiber_g),
                             SUM(sugar_g), SUM(sodium_mg), SUM(potassium_mg) FROM entries INNER JOIN diet ON entries.entry_id = diet.diet_id 
-                            WHERE user_id = ? AND time>= (SELECT datetime('now','start of day'));""", (session["user_id"], )).fetchone()
+                            WHERE user_id = ? AND time LIKE ?;""", (session["user_id"], date)).fetchone()
         cur.close()
-        dic = {}
+        
         if res:
             dic['header_list'] = res[0].keys()
             dic['query_rows'] = res
             dic['total_counts'] = res2
+            dic['date'] = date[:-1]
         return render_template("diet.html", dic=dic) 
         
     if request.method == "POST":
