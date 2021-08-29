@@ -1,0 +1,93 @@
+{% extends "root.html" %}
+
+{% block main %}
+
+<div class="card" style="max-width :600px; margin:auto;">
+    <div class="card-body">
+      <h5>Hello, {{session['email']}}</h5>  
+      <div class="row">
+        <div class="col">
+          <h6>Courses Available:</h6>
+          {% if res %}
+          <ul class="list-group">
+            {% for r in res['courses'] %}
+              <li class="list-group-item">
+                <form action="/bookings" method="post">
+                  Course: {{r[0]}}<br>
+                  Start Time: {{r[1]}}<br>
+                  End Time: {{r[2]}}<br>
+                  <input value={{r[0]}} name="course" type="hidden">
+                  <input value="{{r[1]}}" name="startTime" type="hidden">
+                  <input value="{{r[2]}}" name="endTime" type="hidden">
+                  <input type="submit" style="float:right" value="Book">
+                  Slots: {{r[3]}}
+                </form>
+              </li>
+              
+            {% endfor %}
+          </ul>
+          {% endif %}
+      </div>
+    </div>
+</div>
+
+
+  <div class="card-body">
+    <h5>My Bookings</h5>  
+    <div class="row">
+      <div class="col">
+        <h6>Booked already:</h6>
+        {% if res %}
+        <ul class="list-group">
+          {% for r in res['booked'] %}
+            <li class="list-group-item">
+              <form action="/bookings" method="post">
+                Course: {{r[0]}}<br>
+                Start Time: {{r[1]}}<br>
+                End Time: {{r[2]}}<br>
+                <input value="delete {{r[0]}}" name="course" type="hidden">
+                <input type="submit" style="float:right" value="Cancel Booking">
+                Slots: {{r[3]}}
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+  </div>
+</div>
+
+  <div class="card-body">
+    <h5>Classmates</h5>  
+    <div class="row">
+      <div class="col">
+        <h6>Your Classmates:</h6>
+        {% if res %}
+        <ul class="list-group">
+          {% for course in res['courseList'] %}
+            <li class="list-group-item">
+              Course Code: {{course}}<br>
+              Students: 
+              <table class="table table-striped">
+                <tr>
+                  <th>Email</th>
+                  <th>Signup Date</th>
+                </tr>
+                {% for r in res[course] %}
+                <tr>
+                  <td>{{r[0]}}</td>
+                  <td>{{r[2]}}</td>
+                </tr>
+                
+                {% endfor %}
+              </table>
+              
+            </li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+  </div>
+</div>
+</div>
+{% endblock %}

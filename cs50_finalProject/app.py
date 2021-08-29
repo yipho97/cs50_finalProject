@@ -17,7 +17,6 @@ Session(app)
 @login_required
 def index():
     if request.method == "POST":
-        print(request.form.to_dict())
         con = sqlite3.connect('test.db')
         cur = con.cursor()
         if request.form.get("age"):
@@ -25,7 +24,6 @@ def index():
                         (session['user_id'], request.form.get("age"), request.form.get("gender"), request.form.get("height"), request.form.get("weight"), request.form.get("activitylevel"), 
                         request.form.get("goal")))
         else:
-            print("DONEEE")
             cur.execute("INSERT OR REPLACE INTO diet_goal VALUES(?, ?, ?, ?, ?);", 
                             (session['user_id'], request.form.get("calories"), request.form.get("protein"), request.form.get("fat"), request.form.get("carbs")))
         con.commit()
@@ -186,5 +184,50 @@ def macros():
         print(response)
         return render_template("macros.html", res = response)
     return render_template("macros.html")
+
+
+@app.route("/bookings", methods=["GET", "POST"])
+@login_required
+def bookings():
+    if request.method == "POST":
+        datetime =''
+        con = sqlite3.connect('test.db')
+        cur = con.cursor()
+        #if delete in form, remove entry from courses_log else inser into log
+        if "delete" in request.form.get('course'):
+            course_code = request.form.get('course')[7:]
+
+            cur.execute("DELETE FROM courses_log WHERE (user_id = ? AND course_id = ?);",(session["user_id"], course_code ))
+            cur.execute("UPDATE courses SET slots = slots + 1 WHERE course_id = ?;",(course_code, ))
+
+        else:
+            startTime =  request.form.get('startTime')
+            endTime =  request.form.get('endTime')
+            #sanity check to see if clash, clash needs to be empty list for no clash
+            clash = cur.execute(""" SELECT * FROM courses INNER JOIN courses_log ON courses.course_id = courses_log.course_id WHERE (courses.start_time < ? AND courses.end_time > ?) AND courses_log.user_id = ?;""", (endTime, startTime, session["user_id"])).fetchall()
+            print(clash)
+            if not clash:
+                cur.execute("INSERT INTO courses_log(user_id, course_id) VALUES (?, ?);",(session["user_id"], request.form.get('course') ))
+                cur.execute("UPDATE courses SET slots = slots - 1 WHERE course_id = ?;",(request.form.get('course'), ))
+            else:
+                print("CLASHED")
+                flash('Course will clash with your timetable')               
+        con.commit()
+        cur.close()
+        return redirect("/bookings")
+    if request.method == "GET":
+        con = sqlite3.connect('test.db')
+        cur = con.cursor()
+        res={}
+        res['courses'] = cur.execute("""SELECT * FROM courses WHERE course_id NOT IN(SELECT courses.course_id FROM courses INNER JOIN courses_log ON courses.course_id = courses_log.course_id WHERE courses_log.user_id = ?);""",(session["user_id"], )).fetchall()
+        res['booked'] = cur.execute("""SELECT * FROM courses WHERE course_id IN(SELECT courses.course_id FROM courses INNER JOIN courses_log ON courses.course_id = courses_log.course_id WHERE courses_log.user_id = ?);""",(session["user_id"], )).fetchall()
+        res['courseList'] = ['EE2002', 'EE3001', 'EE4717', 'EE8888', 'EE9999' ]
+        
+        for course in res['courseList']:
+            res[course] = cur.execute("""SELECT users.username, courses_log.course_id, courses_log.time FROM users INNER JOIN courses_log ON users.id = courses_log.user_id WHERE courses_log.course_id = ? ;""",(course, )).fetchall()
+
+        cur.close()
+        
+        return render_template("bookings.html", res=res)
 
 

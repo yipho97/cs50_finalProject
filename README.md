@@ -33,6 +33,8 @@ Allow users to keep track of daily caloric intake as well as food nutritional in
 
 - macros function routes to "/macros" which queries fitness calculator API to get the different types of diet suitable for user based on their profile as response.
 
+- bookings function routes to "/bookings" pulls courses available, courses registered by user and course participants from db. It also accepts a POSTED form to register a user for a particular course. Coded logic "clash" to check whether course fits user's timetable. POSTED with "delete" in "course" parameter indicates user dropping the course, performing delete operation of transaction in courses_log table in db. 
+
 #### **`root.html`**
 Outline of the website to be inherited by future templates
 - navbar
@@ -56,6 +58,12 @@ Form for login/registration
 
 #### **`search.html`**
 - Form to receive query from user and display nutritional value in list.
+
+#### **`bookings.html`**
+- Testing booking system implementation
+- Courses available Form for selecting various courses for booking. Courses are entered into db and course info are pulled from /bookings endpoint
+- My bookings list displays queried courses registered from db, Cancel booking button removes entry from courses_log table in db
+- Classmates list displays queried users registered for various courses from db
 
 #### **`helpers.py`**
 Login required logic to check if user's session key is found, if not redirect to    "/login" route to log in.
